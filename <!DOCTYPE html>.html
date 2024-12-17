@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>基因组位置计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            background-color: #fff;
+            padding: 30px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            border-radius: 5px;
+        }
+        .error {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fdecea;
+            border-left: 6px solid #f44336;
+            border-radius: 5px;
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>基因组位置计算器</h2>
+    <form id="genomicForm">
+        <label for="total_bases">总碱基数:</label>
+        <input type="number" id="total_bases" name="total_bases" min="1" required>
+
+        <label for="start_pos">起始位置:</label>
+        <input type="number" id="start_pos" name="start_pos" min="1" required>
+
+        <label for="end_pos">终止位置:</label>
+        <input type="number" id="end_pos" name="end_pos" min="1" required>
+
+        <label for="strand">链方向:</label>
+        <select id="strand" name="strand" required>
+            <option value="">请选择链方向</option>
+            <option value="+">正链 (+)</option>
+            <option value="-">负链 (-)</option>
+        </select>
+
+        <label for="position_index">位点索引 (1 到 总碱基数):</label>
+        <input type="number" id="position_index" name="position_index" min="1" required>
+
+        <button type="submit">计算</button>
+    </form>
+
+    <div id="output"></div>
+</div>
+
+<script>
+    document.getElementById('genomicForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // 防止表单默认提交
+
+        // 获取输入值
+        const totalBases = parseInt(document.getElementById('total_bases').value);
+        const startPos = parseInt(document.getElementById('start_pos').value);
+        const endPos = parseInt(document.getElementById('end_pos').value);
+        const strand = document.getElementById('strand').value;
+        const positionIndex = parseInt(document.getElementById('position_index').value);
+
+        // 获取输出区域
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = ''; // 清空之前的内容
+
+        // 输入验证
+        let errors = [];
+
+        if (isNaN(totalBases) || totalBases < 1) {
+            errors.push("总碱基数必须是一个正整数。");
+        }
+
+        if (isNaN(startPos) || startPos < 1) {
+            errors.push("起始位置必须是一个正整数。");
+        }
+
+        if (isNaN(endPos) || endPos < 1) {
+            errors.push("终止位置必须是一个正整数。");
+        }
+
+        if (strand !== '+' && strand !== '-') {
+            errors.push("链方向必须选择 '+' 或 '-'。");
+        }
+
+        if (isNaN(positionIndex) || positionIndex < 1 || positionIndex > totalBases) {
+            errors.push(`位点索引必须是一个介于1到${totalBases}之间的正整数。`);
+        }
+
+        if (startPos > endPos) {
+            errors.push("起始位置必须小于或等于终止位置。");
+        }
+
+        if (errors.length > 0) {
+            // 显示错误信息
+            let errorHTML = '<div class="error"><ul>';
+            errors.forEach(function(error) {
+                errorHTML += `<li>${error}</li>`;
+            });
+            errorHTML += '</ul></div>';
+            outputDiv.innerHTML = errorHTML;
+            return;
+        }
+
+        // 计算基因组位置
+        let genomicPosition;
+        if (strand === '+') {
+            genomicPosition = startPos + positionIndex;
+        } else { // strand === '-'
+            genomicPosition = endPos - positionIndex + 1;
+        }
+
+        // 显示结果
+        const chain = strand === '+' ? '正链' : '负链';
+        const resultHTML = `<div class="result">
+                                链方向: ${chain}<br>
+                                第 ${positionIndex} 位点的基因组位置为: <strong>${genomicPosition}</strong>
+                            </div>`;
+        outputDiv.innerHTML = resultHTML;
+    });
+</script>
+
+</body>
+</html>
